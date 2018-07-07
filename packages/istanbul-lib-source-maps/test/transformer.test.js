@@ -5,11 +5,11 @@ var assert = require('chai').assert,
     SMC = require('source-map').SourceMapConsumer,
     createTransformer = require('../lib/transformer').create;
 
-function createData() {
+function createData(altSourceFile) {
     var sourceMap = {
         "version": 3,
         "sources": [
-            "file.js"
+            altSourceFile || "file.js"
         ],
         "mappings": ";AAAa,mBAAW,GAAG,MAAM,CAAC;AACrB,kBAAU,GAAG,yBAAyB,CAAC"
     };
@@ -76,5 +76,20 @@ describe('transformer', function () {
             '1': { start: { line: 2, column: 13 }, end: { line: 2, column: 52 } }
         });
     });
+
+    it('removes mention of loader from source path during transform', function () {
+        var coverageMap = createMap({}),
+            testData = createData('some-loader!path/to/file.js?with-query'),
+            coverageData = testData.coverageData,
+            sourceMap = testData.sourceMap;
+
+        coverageMap.addFileCoverage(coverageData);
+        var mapped = createTransformer(function() {
+            return new SMC(sourceMap);
+        }).transform(coverageMap);
+
+        assert.deepEqual(Object.keys(mapped.data), ['/path/to/file.js']);
+    });
+
 });
 

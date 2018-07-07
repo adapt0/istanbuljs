@@ -62,7 +62,7 @@ function getMapping(sourceMap, location, origFile) {
     }
 
     return {
-        source: pathutils.relativeTo(start.source, origFile),
+        source: pathutils.sanitizeRelativeTo(start.source, origFile),
         loc: {
             start: {
                 line: start.line,
